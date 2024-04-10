@@ -1,0 +1,14 @@
+from Home import st
+import time
+
+def main():
+    st.title("Sign Out Page")
+
+    # Sign out button
+    if st.button("Sign Out"):
+        st.session_state.is_signed_in = False
+        st.text("Redirecting to admin page...")
+        st.markdown("<meta http-equiv='refresh' content='0;URL=http://127.0.0.1:5000/admin.html' />", unsafe_allow_html=True)
+
+if __name__ == "__main__":
+    main()
