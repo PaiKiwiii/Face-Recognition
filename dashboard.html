@@ -1,0 +1,277 @@
+        <!DOCTYPE html>
+        <html lang="en">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Python Dashboard</title>
+            <style>
+                .hidden-container {
+                    display: none;
+                } 
+                #gateTitle {
+                    padding: 2px; /* Adjust the padding as needed */
+                }
+                
+                .dropdown {
+                    position: relative;
+                    display: inline-block;
+                }
+                /* put choices inside the box */
+                .dropdown-content {
+                    display: none;
+                    position: absolute;
+                    background-color: #f9f9f9;
+                    min-width: 160px;
+                    box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.2);
+                    z-index: 1;
+                }
+                /* aligns the content of drop down from top to bottom */
+                .dropdown-content a {
+                    color: white;
+                    padding: 12px 16px;
+                    text-decoration: none;
+                    display: block;
+                    text-align: left;
+                }
+        
+                /* Dropdown on click */
+                .dropdown:hover .dropdown-content {
+                    display: block;
+                }
+        
+                .dropdown.active .dropdown-content {
+                    display: block;
+                }
+                .dropdown a:hover {background-color: #ddd;}
+        
+                .video-container {
+                    position: relative;
+                    padding-top: 0px;
+                    padding-left: 0px;
+                }
+        
+                #overlayCanvas {
+                    position: absolute;
+                    top: 0;
+                    left: 0;
+                }
+        
+                #startFaceRecognitionButton {
+                    position: absolute;
+                    bottom: 10px;
+                    left: 50%;
+                    transform: translateX(-50%);
+                }
+        
+            </style>
+        </head>
+        <body style="background-color: #EBEBEB; margin: 0; overflow-x: hidden">
+        
+            <header style="background-color: white; padding: 20px; width: 100%; border: 5px;">
+                <div id="realTime"></div>
+            </header>
+        
+            <div style="display: flex; justify-content: space-between; padding: 20px;">
+        
+                <!-- Left Column - Face Recognition -->
+                <div style="flex: 1; display: flex; align-items: flex-start; flex-wrap: wrap;">
+                    <h2 id="gateTitle">Gate 1</h2>
+                    <div class="video-container">
+                        <video id="cameraFeed" width="640" height="400" autoplay></video>
+                        <canvas id="overlayCanvas" width="640" height="480"></canvas>
+                        <!-- insert face rec -->
+                        <button id="startFaceRecognitionButton" onclick="startFaceRecognition()">Click for Face Recognition</button>
+                    </div>
+                </div>
+
+                
+        <!-- Right Column - Config, Gate, and Input -->
+<div style="flex: 1; margin-left: 20px; display: flex; flex-direction: column; align-items: flex-start; ">
+
+    <!-- Config and Gate Container -->
+    <div style="display: flex; flex-direction: row; margin-bottom: 10px;">
+
+        <!-- Config Container -->
+        <div style="padding: 10px; margin-right: 10px;">
+            <button onclick="startConfig()" id="Config" style="background-color: #004B30; font-size: 20px; color: white; width: 182px; height: 40px; font-family: Sans-serif; font-weight: bold; border-radius: 10px;">CONFIG</button>
+        </div>
+
+        <!-- Gate Dropdown -->
+        <div id="Gatedropbtn" class="dropdown" style="padding: 10px; margin-bottom: 10px; display: none;">
+            <button class="dropbtn" style="background-color: #004B30; font-size: 20px; color: white; width: 182px; height: 40px; font-family: Sans-serif; font-weight: bold; border-radius: 10px;">GATE &#9662;</button>
+            <div class="dropdown-content" style="background-color: #007A4D" >
+                <a href="#1" onclick="changeGateTitle('Gate 1')">Gate 1</a>
+                <a href="#2" onclick="changeGateTitle('Gate 2')">Gate 2</a>
+                <a href="#5" onclick="changeGateTitle('Gate 5')">Gate 5</a>
+                <a href="#6" onclick="changeGateTitle('Gate 6')">Gate 6</a>
+                <a href="#9" onclick="changeGateTitle('Gate 9')">Gate 9</a>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- Username and Password Input Container -->
+    <div id="myContainer" class="hidden-container" style="border: 2px solid #ddd; padding: 10px; background-color: #D9D9D9; width: 416px;">
+        <div style="text-align: center;">
+
+            <label for="username" style="font-family: Sans-serif; display: inline-block; width: 100px; text-align: left; margin-right: 10px;">Username:</label>
+            <input type="text" id="username" name="username" style="margin-bottom: 10px; width: 260px; display: inline-block;"><br>
+
+            <label for="password" style="font-family: Sans-serif; display: inline-block; width: 100px; text-align: left; margin-right: 10px;">Password:</label>
+            <input type="password" id="password" name="password" style="margin-bottom: 10px; width: 260px; display: inline-block;"><br>
+        
+            <div style="display: flex; justify-content: center;">
+                <button onclick="submitBtn()" style="font-size: 15px; background-color: #004B30; color: white; width: 90px; height: 30px; font-family: Sans-serif; font-weight: bold; border-radius: 5px;">Submit</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- New Container After Successful Login -->
+    <div id="newContainer" class="hidden-container" style="border: 2px solid #ddd; padding: 10px; background-color: #D9D9D9; width: 416px;">
+        <div style="display: flex; flex-wrap: wrap;">
+            <!-- Count Box with Label -->
+            <div style="margin-bottom: 10px; width: 100%; display: flex; align-items: center;">
+                <label for="count" style="font-family: Sans-serif; display: inline-block; width: 100px; text-align: left; margin-right: 10px;">Count:</label>
+                <div id="countBox" style="width: 200px; height: 20px; border: 1px solid #ccc; padding: 5px; background-color: white;"></div>
+            </div>
+
+            <!--Buttons-->
+            <div style="width: 100%; display: flex; justify-content: space-between;">
+                <!-- Buttons: Recognize and N-Recognize in a list -->
+                <ul style="list-style-type: none; padding: 0; text-align: left; margin: 0;">
+                    <li style="margin-bottom: 10px;">
+                        <button onclick="recognize()" style="font-size: 10px; background-color: #004B30; color: white; width: 100px; height: 30px; font-family: Sans-serif; border-radius: 5px;">Recognize</button>
+                    </li>
+                    <li>
+                        <button onclick="notRecognize()" style="font-size: 10px; background-color: #004B30; color: white; width: 100px; height: 30px; font-family: Sans-serif; border-radius: 5px;">N-Recognize</button>
+                    </li>
+                </ul>
+                <!-- Details Button Positioned to the Right -->
+                <button onclick="Details()" style="font-size: 10px; background-color: #004B30; color: white; width: 70px; height: 30px; font-family: Sans-serif; border-radius: 5px; margin-top: 50px;">Details</button>
+
+            </div>
+</div>
+
+        
+
+            <script>
+                function startTime() {
+                    const today = new Date();
+                    let h = today.getHours();
+                    let m = today.getMinutes();
+                    let s = today.getSeconds();
+                    let dd = today.getDate();
+                    let mm = today.getMonth() + 1;
+                    let yyyy= today.getFullYear();
+
+                    const monthNames = ["January", "February", "March", "April", "May", "June",
+  "July", "August", "September", "October", "November", "December"];
+
+
+                    m = checkTime(m);
+                    s = checkTime(s);
+                    document.getElementById('realTime').innerHTML = h + ":" + m + ":" + s + " " + " " + monthNames[mm] + "/" + dd + "/" + yyyy;
+                    setTimeout(startTime, 1000);
+                  }
+                  
+                  function checkTime(i) {
+                    if (i < 10) {i = "0" + i};  // add zero in front of numbers < 10
+                    return i;
+                  }
+                  
+                  // Call startTime function when the page loads
+                  startTime();
+
+                function startFaceRecognition() {
+                    // Get video element
+                    const video = document.getElementById('cameraFeed');
+        
+                    // Check if the browser supports getUserMedia
+                    if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+                        // Request access to the camera
+                        navigator.mediaDevices.getUserMedia({ video: true })
+                            .then((stream) => {
+                                // Set the video stream as the source for the video element
+                                video.srcObject = stream;
+                        })
+                        .catch((error) => {
+                            console.error('Error accessing the camera:', error);
+                        });
+                    } else {
+                        console.error('getUserMedia is not supported on this browser');
+                    }
+        
+                    // Perform face recognition
+                    // Send video frames to the server for processing
+                    // Update UI based on recognition results
+                }
+
+                function startConfig() {
+                    // Toggle myContainer
+                    var myContainer = document.getElementById("myContainer");
+                    myContainer.style.display = (myContainer.style.display === "none" || myContainer.style.display === "") ? "block" : "none";
+                
+                    // Gatedropbtn is hidden when startconfig is toggled
+                    var gatedropbtn = document.getElementById("Gatedropbtn");
+                    gatedropbtn.style.display = (gatedropbtn.style.display === "") ? "block" : "none";
+
+                    // Gatedropbtn is hidden when startconfig is toggled
+                    var newContainer = document.getElementById("newContainer");
+                    newContainer.style.display = (gatedropbtn.style.display === "") ? "block" : "none";
+                
+                }
+                
+                //submit button shows dropdown
+                function submitBtn() {
+                    // Validate login
+                    if (validateLogin()) {
+                        var container = document.getElementById("myContainer");
+                        container.style.display = "none";
+
+                        var newContainer = document.getElementById("newContainer");
+                        newContainer.style.display = "block";
+                    }
+                }
+                //dropdown shows list of gates
+                function myFunctionGate(){
+                    document.getElementById("myDropdown").classList.toggle("show");
+                }
+                // change title in url
+                function changeGateTitle(newTitle) {
+                    document.getElementById("changeGateTitle").innerText = newTitle;
+                }
+
+                function changeGateTitle(newTitle){
+                    document.getElementById("gateTitle").innerText = newTitle;
+                }
+
+                function validateLogin() {
+            var username = document.getElementById("username").value;
+            var password = document.getElementById("password").value;
+
+            // Hardcoded username and password
+            var hardcodedUsername = "123";
+            var hardcodedPassword = "123";
+            
+            //opens if korek user and password
+            if (username === hardcodedUsername && password === hardcodedPassword) {
+            // Show gate dropdown
+        var gateDropdown = document.getElementById("Gatedropbtn");
+        gateDropdown.style.display = "block";
+
+        // Show new container
+        var newContainer = document.getElementById("newContainer");
+        newContainer.style.display = "block";
+
+        // Hide login container
+        var loginContainer = document.getElementById("myContainer");    
+        loginContainer.style.display = "none";
+    } else {
+        alert("Invalid username or password. Please try again.");
+        }
+    }
+                
+                
+        </script>
+        </body>
+        </html>
